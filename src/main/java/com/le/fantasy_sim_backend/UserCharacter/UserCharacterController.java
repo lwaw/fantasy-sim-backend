@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.le.fantasy_sim_backend.Currency.ICurrencyRepository;
+import com.le.fantasy_sim_backend.Services.AddCurrency;
 import com.le.fantasy_sim_backend.Services.IsLoggedInService;
 import com.le.fantasy_sim_backend.Services.IsUserCharacter;
 
@@ -21,10 +23,16 @@ public class UserCharacterController {
 	private IUserCharacterRepository userCharacterRepo;
 	
 	@Autowired
+	private ICurrencyRepository currencyRepo;
+	
+	@Autowired
 	private IsLoggedInService isLoggedInService;
 	
 	@Autowired 
 	private IsUserCharacter isUserCharacter;
+	
+	@Autowired 
+	private AddCurrency addCurrency;
 	
 	@PostMapping(value = "UserCharacter/train")
 	public TrainResponseDTO train(@RequestHeader("Authentication") String token, @RequestBody TrainRequestDTO dto) {
@@ -48,9 +56,15 @@ public class UserCharacterController {
 			userCharacter.setStrength(userCharacter.getStrength() + 5);
 			userCharacterRepo.save(userCharacter);
 			
-			return new TrainResponseDTO(true, userCharacter.getStrength(), "Not logged in");
+			if(userCharacter.getStrength() % 25 == 0) {
+				addCurrency.addCurrency(currencyRepo.findByName("gold").get().getId(), userCharacter.getId(), 5.0);
+				return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully and earned 5 gold");
+			} else {
+				return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully");
+			}
+			
 		}
-		
+				
 		return new TrainResponseDTO(false, 0, "err");
 	}
 }
