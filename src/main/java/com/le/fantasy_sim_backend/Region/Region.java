@@ -1,6 +1,8 @@
-package com.le.fantasy_sim_backend.Currency;
+package com.le.fantasy_sim_backend.Region;
 
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.le.fantasy_sim_backend.Nation.Nation;
 
 import jakarta.persistence.Column;
@@ -8,10 +10,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 @Entity
-public class Currency {
+public class Region {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,13 +23,12 @@ public class Currency {
 	@Column(length = 200, nullable = false, unique = true)
 	private String name;
 	
-	/*
-	@OneToMany
-	private List<UserCurrency> userCurrencies;
-	*/
-	
-	@OneToOne
+	@ManyToOne
 	private Nation nation;
+	
+	@OneToMany
+	@JsonIgnore
+	private List<Region> borders;
 
 	public long getId() {
 		return id;
@@ -44,14 +46,21 @@ public class Currency {
 		this.name = name;
 	}
 
-	/*
-	public List<UserCurrency> getUserCurrencies() {
-		return userCurrencies;
+	public Nation getNation() {
+		return nation;
 	}
 
-	public void setUserCurrencies(List<UserCurrency> userCurrencies) {
-		this.userCurrencies = userCurrencies;
+	public void setNation(Nation nation) {
+		this.nation = nation;
 	}
-	*/
+
+	public List<Region> getBorders() {
+		return borders;
+	}
+
+	public void setBorders(List<Region> borders) {
+		this.borders = borders;
+	}
+	
 	
 }

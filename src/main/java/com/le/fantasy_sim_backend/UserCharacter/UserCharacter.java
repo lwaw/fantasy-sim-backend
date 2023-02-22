@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.le.fantasy_sim_backend.Nation.Nation;
+import com.le.fantasy_sim_backend.Region.Region;
 import com.le.fantasy_sim_backend.UserCurrency.UserCurrency;
 import com.le.fantasy_sim_backend.Users.UserAccount;
 
@@ -38,6 +39,12 @@ public class UserCharacter {
 	
 	@OneToOne
 	private Nation citizenship;
+	
+	@OneToOne
+	private Nation locationNation;
+	
+	@OneToOne
+	private Region locationRegion;
 	
 	@OneToMany
 	@JsonIgnore
@@ -97,6 +104,22 @@ public class UserCharacter {
 
 	public void setUsercurrencies(List<UserCurrency> usercurrencies) {
 		this.usercurrencies = usercurrencies;
+	}
+
+	public Nation getLocationNation() {
+		return locationNation;
+	}
+
+	public void setLocationNation(Nation locationNation) {
+		this.locationNation = locationNation;
+	}
+
+	public Region getLocationRegion() {
+		return locationRegion;
+	}
+
+	public void setLocationRegion(Region locationRegion) {
+		this.locationRegion = locationRegion;
 	}
 	
 	
