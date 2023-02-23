@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.le.fantasy_sim_backend.Currency.ICurrencyRepository;
-import com.le.fantasy_sim_backend.Services.AddCurrency;
+import com.le.fantasy_sim_backend.Services.AddCurrencyService;
 import com.le.fantasy_sim_backend.Services.IsLoggedInService;
-import com.le.fantasy_sim_backend.Services.IsUserCharacter;
+import com.le.fantasy_sim_backend.Services.IsUserCharacterService;
+import com.le.fantasy_sim_backend.Services.UserCharacterChecksService;
+import com.le.fantasy_sim_backend.Services.UserIsAuthorizedChecksService;
 
 @RestController
 @CrossOrigin(maxAge = 3600)
@@ -26,22 +28,33 @@ public class UserCharacterController {
 	private ICurrencyRepository currencyRepo;
 	
 	@Autowired
-	private IsLoggedInService isLoggedInService;
+	private UserIsAuthorizedChecksService userIsAuthorizedChecksService;
 	
 	@Autowired 
-	private IsUserCharacter isUserCharacter;
+	private AddCurrencyService addCurrencyService;
 	
-	@Autowired 
-	private AddCurrency addCurrency;
+	@Autowired
+	private UserCharacterChecksService userCharacterChecksService;
+	
+	//perform database checks when logging in and when changing characters
+	@PostMapping(value = "UserCharacter/changeCharacter")
+	public ChangeResponseDTO train(@RequestHeader("Authentication") String token, @RequestBody ChangeRequestDTO dto) {
+		
+		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getcharacterId(), token)) {
+			return new ChangeResponseDTO(false, "Wrong login");
+		}
+		
+		if(userCharacterChecksService.userCharacterChecks(dto.getcharacterId())) {
+			return new ChangeResponseDTO(true, "");
+		}
+		
+		return new ChangeResponseDTO(false, "Checks failed");
+	}
 	
 	@PostMapping(value = "UserCharacter/train")
 	public TrainResponseDTO train(@RequestHeader("Authentication") String token, @RequestBody TrainRequestDTO dto) {
-		if(!isLoggedInService.isLoggedIn(token)) {
-			return new TrainResponseDTO(false, 0, "Not logged in");
-		}
-		
-		if(!isUserCharacter.isUserCharacter(dto.getcharacterId(), token)) {
-			return new TrainResponseDTO(false, 0, "Character id does not belong to account");
+		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getcharacterId(), token)) {
+			return new TrainResponseDTO(false, 0, "Wrong login");
 		}
 		
 		Optional<UserCharacter> optional = userCharacterRepo.findById(dto.getcharacterId());
@@ -57,7 +70,7 @@ public class UserCharacterController {
 			userCharacterRepo.save(userCharacter);
 			
 			if(userCharacter.getStrength() % 25 == 0) {
-				addCurrency.addCurrency(currencyRepo.findByName("gold").get().getId(), userCharacter.getId(), 5.0);
+				addCurrencyService.addCurrency(currencyRepo.findByName("gold").get().getId(), userCharacter.getId(), 5.0);
 				return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully and earned 5 gold");
 			} else {
 				return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully");

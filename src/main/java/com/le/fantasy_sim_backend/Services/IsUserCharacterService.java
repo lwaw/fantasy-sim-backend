@@ -11,7 +11,7 @@ import com.le.fantasy_sim_backend.Users.IUserAccountRepository;
 import com.le.fantasy_sim_backend.Users.UserAccount;
 
 @Service
-public class IsUserCharacter {
+public class IsUserCharacterService {
 
 	@Autowired
 	private IUserCharacterRepository userCharacterRepo;

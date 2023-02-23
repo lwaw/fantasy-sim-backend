@@ -14,10 +14,13 @@ import com.le.fantasy_sim_backend.Currency.Currency;
 import com.le.fantasy_sim_backend.Currency.ICurrencyRepository;
 import com.le.fantasy_sim_backend.Nation.INationRepository;
 import com.le.fantasy_sim_backend.Nation.Nation;
-import com.le.fantasy_sim_backend.Services.AddCurrency;
+import com.le.fantasy_sim_backend.Services.AddCurrencyService;
 import com.le.fantasy_sim_backend.Services.IsLoggedInService;
-import com.le.fantasy_sim_backend.Services.IsUserCharacter;
-import com.le.fantasy_sim_backend.Services.SubtractCurrency;
+import com.le.fantasy_sim_backend.Services.IsUserCharacterService;
+import com.le.fantasy_sim_backend.Services.SubtractCurrencyService;
+import com.le.fantasy_sim_backend.Services.UserCharacterChecksService;
+import com.le.fantasy_sim_backend.Services.UserIsAuthorizedChecksService;
+import com.le.fantasy_sim_backend.UserCharacter.ChangeResponseDTO;
 import com.le.fantasy_sim_backend.UserCharacter.IUserCharacterRepository;
 import com.le.fantasy_sim_backend.UserCharacter.TrainResponseDTO;
 import com.le.fantasy_sim_backend.UserCharacter.UserCharacter;
@@ -39,25 +42,19 @@ public class CurrencyMarketController {
 	private INationRepository nationRepo;
 	
 	@Autowired
-	private IsLoggedInService isLoggedInService;
+	private UserIsAuthorizedChecksService userIsAuthorizedChecksService;
 	
 	@Autowired 
-	private IsUserCharacter isUserCharacter;
-	
-	@Autowired 
-	private SubtractCurrency subtractcurrency;
+	private SubtractCurrencyService subtractcurrency;
 	
 	@Autowired
-	private AddCurrency addcurrency;
+	private AddCurrencyService addcurrency;
 	
 	@PostMapping(value = "CurrencyMarket/create")
 	public MarketCreateResponseDTO createCurrencyMarket(@RequestHeader("Authentication") String token, @RequestBody MarketCreateRequestDTO dto) {
-		if(!isLoggedInService.isLoggedIn(token)) {
-			return new MarketCreateResponseDTO(false, "Not logged in");
-		}
 		
-		if(!isUserCharacter.isUserCharacter(dto.getUserCharacterId(), token)) {
-			return new MarketCreateResponseDTO(false, "Character id does not belong to account");
+		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getUserCharacterId(), token)) {
+			return new MarketCreateResponseDTO(false, "Wrong login");
 		}
 		
 		Optional<Currency> requestCurrencyOption = currencyRepo.findById(dto.getRequestCurrencyId());
@@ -109,12 +106,8 @@ public class CurrencyMarketController {
 	
 	@PostMapping(value = "CurrencyMarket/accept")
 	public MarketAcceptResponseDTO acceptCurrencyMarket(@RequestHeader("Authentication") String token, @RequestBody MarketAcceptRequestDTO dto) {
-		if(!isLoggedInService.isLoggedIn(token)) {
-			return new MarketAcceptResponseDTO(false, "Not logged in");
-		}
-		
-		if(!isUserCharacter.isUserCharacter(dto.getUserCharacterId(), token)) {
-			return new MarketAcceptResponseDTO(false, "Character id does not belong to account");
+		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getUserCharacterId(), token)) {
+			return new MarketAcceptResponseDTO(false, "Wrong login");
 		}
 		
 		Optional<CurrencyMarket> currencyMarketOption = currencyMarketRepo.findById(dto.getOfferId());
@@ -165,5 +158,38 @@ public class CurrencyMarketController {
 		return new MarketAcceptResponseDTO(false, "err");
 	}
 	
+	
+	@PostMapping(value = "CurrencyMarket/delete")
+	public MarketDeleteResponseDTO deleteCurrencyMarket(@RequestHeader("Authentication") String token, @RequestBody MarketDeleteRequestDTO dto) {
+		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getUserCharacterId(), token)) {
+			return new MarketDeleteResponseDTO(false, "Wrong login");
+		}
+		
+		Optional<CurrencyMarket> currencyMarketOption = currencyMarketRepo.findById(dto.getOfferId());
+		if(currencyMarketOption.isEmpty()) {
+			return new MarketDeleteResponseDTO(false, "No offer found");
+		}
+		
+		CurrencyMarket currencyMarket = currencyMarketOption.get();
+		
+		Optional<UserCharacter> userCharacterOption = characterRepo.findById(dto.getUserCharacterId());
+		
+		if(userCharacterOption.isEmpty()) {
+			return new MarketDeleteResponseDTO(false, "No character found");
+		}
+		
+		UserCharacter userCharacter = userCharacterOption.get();
+		
+		if(addcurrency.addCurrency(currencyMarket.getOfferCurrency().getId(), userCharacter.getId(), currencyMarket.getOfferCurrencyAmount())) {
+			
+			currencyMarketRepo.deleteById(currencyMarket.getId());
+			
+			return new MarketDeleteResponseDTO(true, "");
+		}else {
+			return new MarketDeleteResponseDTO(false, "Could not add currency to character account");
+		}
+	
+		
+	}
 	
 }

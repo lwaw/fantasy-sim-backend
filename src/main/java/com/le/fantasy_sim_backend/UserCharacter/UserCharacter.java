@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.le.fantasy_sim_backend.Company.Company;
 import com.le.fantasy_sim_backend.Nation.Nation;
 import com.le.fantasy_sim_backend.Region.Region;
 import com.le.fantasy_sim_backend.UserCurrency.UserCurrency;
@@ -49,6 +50,9 @@ public class UserCharacter {
 	@OneToMany
 	@JsonIgnore
 	private List<UserCurrency> usercurrencies;
+		
+	@Column(nullable = true)
+	private LocalDateTime lastWorked;
 
 	public long getId() {
 		return id;
@@ -120,6 +124,14 @@ public class UserCharacter {
 
 	public void setLocationRegion(Region locationRegion) {
 		this.locationRegion = locationRegion;
+	}
+
+	public LocalDateTime getLastWorked() {
+		return lastWorked;
+	}
+
+	public void setLastWorked(LocalDateTime lastWorked) {
+		this.lastWorked = lastWorked;
 	}
 	
 	

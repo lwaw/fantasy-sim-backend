@@ -9,12 +9,12 @@ import com.le.fantasy_sim_backend.UserCurrency.IUserCurrencyRepository;
 import com.le.fantasy_sim_backend.UserCurrency.UserCurrency;
 
 @Service
-public class AddCurrency {
-	
+public class SubtractCurrencyService {
+
 	@Autowired
 	private IUserCurrencyRepository userCurrencyRepo;
 
-	public boolean addCurrency(Long currencyId, Long userCharacterId, double amount) {
+	public boolean subtractCurrency(Long currencyId, Long userCharacterId, double amount) {
 		
 		Optional<UserCurrency> optional = userCurrencyRepo.findByCurrencyAndUserCharacter(currencyId, userCharacterId);
 		if (optional.isEmpty()) {
@@ -22,7 +22,13 @@ public class AddCurrency {
 		}
 		
 		UserCurrency usercurrency = optional.get();
-		usercurrency.setAmount(usercurrency.getAmount() + amount);
+		
+		if(usercurrency.getAmount() - amount >= 0.00) {
+			usercurrency.setAmount(usercurrency.getAmount() - amount);
+		}else {
+			return false;
+		}
+		
 		
 		userCurrencyRepo.save(usercurrency);
 		
