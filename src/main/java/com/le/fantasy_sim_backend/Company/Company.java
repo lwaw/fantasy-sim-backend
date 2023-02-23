@@ -75,14 +75,6 @@ public class Company {
 		this.owner = owner;
 	}
 
-	public List<UserCharacter> getEmployees() {
-		return employees;
-	}
-
-	public void setEmployees(List<UserCharacter> employees) {
-		this.employees = employees;
-	}
-
 	public Nation getLocationNation() {
 		return locationNation;
 	}
