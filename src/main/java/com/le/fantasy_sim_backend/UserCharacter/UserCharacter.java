@@ -35,6 +35,9 @@ public class UserCharacter {
 	@Column(columnDefinition = "int default 0")
 	private int strength;
 	
+	@Column(columnDefinition = "int default 100")
+	private int energy;
+	
 	@Column(nullable = true)
 	private LocalDateTime lastTrained;
 	
@@ -132,6 +135,14 @@ public class UserCharacter {
 
 	public void setLastWorked(LocalDateTime lastWorked) {
 		this.lastWorked = lastWorked;
+	}
+
+	public int getEnergy() {
+		return energy;
+	}
+
+	public void setEnergy(int energy) {
+		this.energy = energy;
 	}
 	
 	

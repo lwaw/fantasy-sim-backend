@@ -33,13 +33,6 @@ public class Company {
 	@ManyToOne
 	private UserCharacter owner;
 	
-	@OneToMany
-	@JsonIgnore
-	private List<Job> jobs;
-		
-	@OneToOne
-	private Nation locationNation;
-	
 	@OneToOne
 	private Region locationRegion;
 
@@ -75,21 +68,12 @@ public class Company {
 		this.owner = owner;
 	}
 
-	public Nation getLocationNation() {
-		return locationNation;
-	}
-
-	public void setLocationNation(Nation locationNation) {
-		this.locationNation = locationNation;
-	}
-
 	public Region getLocationRegion() {
 		return locationRegion;
 	}
 
 	public void setLocationRegion(Region locationRegion) {
 		this.locationRegion = locationRegion;
-	}
-	
+	}	
 	
 }

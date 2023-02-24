@@ -14,6 +14,7 @@ import com.le.fantasy_sim_backend.Currency.ICurrencyRepository;
 import com.le.fantasy_sim_backend.Services.AddCurrencyService;
 import com.le.fantasy_sim_backend.Services.IsLoggedInService;
 import com.le.fantasy_sim_backend.Services.IsUserCharacterService;
+import com.le.fantasy_sim_backend.Services.SubtractEnergyService;
 import com.le.fantasy_sim_backend.Services.UserCharacterChecksService;
 import com.le.fantasy_sim_backend.Services.UserIsAuthorizedChecksService;
 
@@ -35,6 +36,9 @@ public class UserCharacterController {
 	
 	@Autowired
 	private UserCharacterChecksService userCharacterChecksService;
+	
+	@Autowired
+	private SubtractEnergyService subtractEnergyService;
 	
 	//perform database checks when logging in and when changing characters
 	@PostMapping(value = "UserCharacter/changeCharacter")
@@ -65,15 +69,19 @@ public class UserCharacterController {
 		UserCharacter userCharacter = optional.get();
 		
 		if(LocalDateTime.now().isAfter(userCharacter.getLastTrained().plusDays(1))) {
-			userCharacter.setLastTrained(LocalDateTime.now());
-			userCharacter.setStrength(userCharacter.getStrength() + 5);
-			userCharacterRepo.save(userCharacter);
-			
-			if(userCharacter.getStrength() % 25 == 0) {
-				addCurrencyService.addCurrency(currencyRepo.findByName("gold").get().getId(), userCharacter.getId(), 5.0);
-				return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully and earned 5 gold");
-			} else {
-				return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully");
+			if(subtractEnergyService.subtractEnergy(userCharacter.getId(), 10, false)) {
+				userCharacter.setLastTrained(LocalDateTime.now());
+				userCharacter.setStrength(userCharacter.getStrength() + 5);
+				userCharacterRepo.save(userCharacter);
+				
+				if(userCharacter.getStrength() % 25 == 0) {
+					addCurrencyService.addCurrency(currencyRepo.findByName("gold").get().getId(), userCharacter.getId(), 5.0, false);
+					return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully and earned 5 gold");
+				} else {
+					return new TrainResponseDTO(true, userCharacter.getStrength(), "Trained succesfully");
+				}
+			}else {
+				//not enough energy
 			}
 			
 		}

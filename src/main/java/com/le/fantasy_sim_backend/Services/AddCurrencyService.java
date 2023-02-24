@@ -14,7 +14,7 @@ public class AddCurrencyService {
 	@Autowired
 	private IUserCurrencyRepository userCurrencyRepo;
 
-	public boolean addCurrency(Long currencyId, Long userCharacterId, double amount) {
+	public boolean addCurrency(Long currencyId, Long userCharacterId, double amount, boolean onlyVerify) {
 		
 		Optional<UserCurrency> optional = userCurrencyRepo.findByCurrencyAndUserCharacter(currencyId, userCharacterId);
 		if (optional.isEmpty()) {
@@ -22,9 +22,12 @@ public class AddCurrencyService {
 		}
 		
 		UserCurrency usercurrency = optional.get();
-		usercurrency.setAmount(usercurrency.getAmount() + amount);
 		
-		userCurrencyRepo.save(usercurrency);
+		if(onlyVerify == false) {
+			usercurrency.setAmount(usercurrency.getAmount() + amount);
+			
+			userCurrencyRepo.save(usercurrency);
+		}
 		
 		return true;
 	}

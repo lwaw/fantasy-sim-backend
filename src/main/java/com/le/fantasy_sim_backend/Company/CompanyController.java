@@ -1,5 +1,7 @@
 package com.le.fantasy_sim_backend.Company;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -7,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.le.fantasy_sim_backend.Currency.ICurrencyRepository;
+import com.le.fantasy_sim_backend.Job.IJobRepository;
+import com.le.fantasy_sim_backend.Job.Job;
 import com.le.fantasy_sim_backend.Services.CheckCompanyTypeService;
 import com.le.fantasy_sim_backend.Services.SubtractCurrencyService;
 import com.le.fantasy_sim_backend.Services.UserIsAuthorizedChecksService;
@@ -25,6 +29,9 @@ public class CompanyController {
 	
 	@Autowired
 	IUserCharacterRepository userCharacterRepo;
+	
+	@Autowired
+	private IJobRepository jobRepo;
 	
 	@Autowired
 	private UserIsAuthorizedChecksService userIsAuthorizedChecksService;
@@ -46,7 +53,7 @@ public class CompanyController {
 			return new CreateCompanyResponseDTO(false, "Illegal company type");
 		}
 		
-		if(subtractCurrencyService.subtractCurrency(currencyRepo.findByName("gold").get().getId(), dto.getUserCharacterId(), 10.00)) {
+		if(subtractCurrencyService.subtractCurrency(currencyRepo.findByName("gold").get().getId(), dto.getUserCharacterId(), 10.00, false)) {
 			Company company = new Company();
 			companyRepo.save(company);
 			
@@ -55,7 +62,6 @@ public class CompanyController {
 			company.setName(dto.getName());
 			company.setOwner(userCharacter);
 			company.setType(dto.getType());
-			company.setLocationNation(userCharacter.getLocationNation());
 			company.setLocationRegion(userCharacter.getLocationRegion());
 			companyRepo.save(company);
 			
@@ -64,6 +70,34 @@ public class CompanyController {
 			return new CreateCompanyResponseDTO(false, "Not enough currency in inventory");
 		}
 		
+		
+	}
+	
+	@PostMapping(value = "Company/createJob")
+	public CreateJobResponseDTO createJob(@RequestHeader("Authentication") String token, CreateJobRequestDTO dto) {
+		
+		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getUserCharacterId(), token)) {
+			return new CreateJobResponseDTO(false, "login error");
+		}
+		
+		Optional<Company> companyOption = companyRepo.findById(dto.getCompanyId());
+		if(companyOption.isEmpty()) {
+			return new CreateJobResponseDTO(false, "Bad company");
+		}
+		Company company = companyOption.get();
+		
+		if(company.getOwner().getId() != dto.getUserCharacterId()) {
+			return new CreateJobResponseDTO(false, "Bad company");
+		}
+		
+		Job job = new Job();
+		jobRepo.save(job);
+		
+		job.setCompany(company);
+		job.setSalary(dto.getSalary());
+		jobRepo.save(job);
+		
+		return new CreateJobResponseDTO(true, "");
 		
 	}
 }

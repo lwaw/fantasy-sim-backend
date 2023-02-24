@@ -14,7 +14,7 @@ public class SubtractCurrencyService {
 	@Autowired
 	private IUserCurrencyRepository userCurrencyRepo;
 
-	public boolean subtractCurrency(Long currencyId, Long userCharacterId, double amount) {
+	public boolean subtractCurrency(Long currencyId, Long userCharacterId, double amount, boolean onlyVerify) {
 		
 		Optional<UserCurrency> optional = userCurrencyRepo.findByCurrencyAndUserCharacter(currencyId, userCharacterId);
 		if (optional.isEmpty()) {
@@ -24,13 +24,15 @@ public class SubtractCurrencyService {
 		UserCurrency usercurrency = optional.get();
 		
 		if(usercurrency.getAmount() - amount >= 0.00) {
-			usercurrency.setAmount(usercurrency.getAmount() - amount);
+			if(onlyVerify == false) {
+				usercurrency.setAmount(usercurrency.getAmount() - amount);
+				
+				userCurrencyRepo.save(usercurrency);
+			}
 		}else {
 			return false;
 		}
 		
-		
-		userCurrencyRepo.save(usercurrency);
 		
 		return true;
 	}

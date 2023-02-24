@@ -79,7 +79,7 @@ public class CurrencyMarketController {
 		
 		if(dto.getNationOfferId() == null) {
 			
-			if(subtractcurrency.subtractCurrency(offerCurrency.getId(), dto.getUserCharacterId(), dto.getOfferCurrencyAmount())) {
+			if(subtractcurrency.subtractCurrency(offerCurrency.getId(), dto.getUserCharacterId(), dto.getOfferCurrencyAmount(), false)) {
 				
 				currencyMarketRepo.save(currencyMarket);
 				
@@ -136,12 +136,12 @@ public class CurrencyMarketController {
 		if(currencyMarket.getType() == "user") {
 			
 			//remove price from buyer account
-			if(subtractcurrency.subtractCurrency(currencyMarket.getRequestCurrency().getId(), userCharacter.getId(), price)) {
+			if(subtractcurrency.subtractCurrency(currencyMarket.getRequestCurrency().getId(), userCharacter.getId(), price, false)) {
 				//add currency to buyer account
-				addcurrency.addCurrency(currencyMarket.getOfferCurrency().getId(), userCharacter.getId(), dto.getBuyCurrencyAmount());
+				addcurrency.addCurrency(currencyMarket.getOfferCurrency().getId(), userCharacter.getId(), dto.getBuyCurrencyAmount(), false);
 				
 				//add currency to owner account
-				addcurrency.addCurrency(currencyMarket.getRequestCurrency().getId(), currencyMarket.getOwnerUserCharacter().getId(), price);
+				addcurrency.addCurrency(currencyMarket.getRequestCurrency().getId(), currencyMarket.getOwnerUserCharacter().getId(), price, false);
 				
 				//remove from offer
 				currencyMarket.setOfferCurrencyAmount(currencyMarket.getOfferCurrencyAmount() - dto.getBuyCurrencyAmount());
@@ -180,7 +180,7 @@ public class CurrencyMarketController {
 		
 		UserCharacter userCharacter = userCharacterOption.get();
 		
-		if(addcurrency.addCurrency(currencyMarket.getOfferCurrency().getId(), userCharacter.getId(), currencyMarket.getOfferCurrencyAmount())) {
+		if(addcurrency.addCurrency(currencyMarket.getOfferCurrency().getId(), userCharacter.getId(), currencyMarket.getOfferCurrencyAmount(), false)) {
 			
 			currencyMarketRepo.deleteById(currencyMarket.getId());
 			
