@@ -44,6 +44,9 @@ public class UserAccount {
 	@Column(length = 200, nullable = true)
 	private String token;
 	
+	@Column()
+	private Boolean accountActivated;
+	
 	@ManyToMany
 	@JsonIgnore
 	private List<Role> roles;
@@ -130,6 +133,14 @@ public class UserAccount {
 
 	public void setUserCharacters(List<UserCharacter> userCharacters) {
 		this.userCharacters = userCharacters;
+	}
+
+	public Boolean getAccountActivated() {
+		return accountActivated;
+	}
+
+	public void setAccountActivated(Boolean accountActivated) {
+		this.accountActivated = accountActivated;
 	}
 	
 	

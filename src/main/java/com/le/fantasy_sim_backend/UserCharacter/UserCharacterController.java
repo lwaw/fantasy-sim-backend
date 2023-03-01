@@ -11,12 +11,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.le.fantasy_sim_backend.Currency.ICurrencyRepository;
+import com.le.fantasy_sim_backend.Nation.INationRepository;
+import com.le.fantasy_sim_backend.Nation.Nation;
+import com.le.fantasy_sim_backend.Race.IRaceRepository;
+import com.le.fantasy_sim_backend.Race.Race;
 import com.le.fantasy_sim_backend.Services.AddCurrencyService;
 import com.le.fantasy_sim_backend.Services.IsLoggedInService;
 import com.le.fantasy_sim_backend.Services.IsUserCharacterService;
 import com.le.fantasy_sim_backend.Services.SubtractEnergyService;
 import com.le.fantasy_sim_backend.Services.UserCharacterChecksService;
 import com.le.fantasy_sim_backend.Services.UserIsAuthorizedChecksService;
+import com.le.fantasy_sim_backend.StandardDTO.StandardResponseDTO;
+import com.le.fantasy_sim_backend.Users.IUserAccountRepository;
 
 @RestController
 @CrossOrigin(maxAge = 3600)
@@ -27,6 +33,15 @@ public class UserCharacterController {
 	
 	@Autowired
 	private ICurrencyRepository currencyRepo;
+	
+	@Autowired
+	private IUserAccountRepository userRepo;
+	
+	@Autowired
+	private INationRepository nationRepo;
+	
+	@Autowired
+	private IRaceRepository raceRepo;
 	
 	@Autowired
 	private UserIsAuthorizedChecksService userIsAuthorizedChecksService;
@@ -55,6 +70,41 @@ public class UserCharacterController {
 		return new ChangeResponseDTO(false, "Checks failed");
 	}
 	
+	@PostMapping(value = "UserCharacter/create")
+	public StandardResponseDTO createCharacter(@RequestHeader("Authentication") String token, @RequestBody CreateRequestDTO dto) {
+		
+		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getCharacterId(), token)) {
+			return new StandardResponseDTO(false, "Wrong login");
+		}
+		
+		Optional<Race> raceOptional = raceRepo.findByName(dto.getRace());
+		
+		if(!raceOptional.isPresent()) {
+			return new StandardResponseDTO(false, "Race not present");
+		}
+		
+		Nation nation = nationRepo.findByRace(raceRepo.findByName(dto.getRace()).get()).get();
+		
+		UserCharacter userCharacter = new UserCharacter();
+		userCharacterRepo.save(userCharacter);
+		
+		userCharacter.setUserAccount(userRepo.findById(dto.getCharacterId()).get());
+		userCharacter.setName(dto.getName());
+		userCharacter.setCitizenship(nation);
+		userCharacter.setRace(raceRepo.findByName(dto.getRace()).get());
+		userCharacter.setLocationNation(nation);
+		userCharacter.setLocationRegion(nation.getCapital());
+		
+		userCharacterRepo.save(userCharacter);
+		
+		if(!userCharacterChecksService.userCharacterChecks(userCharacter.getId())) {
+			return new StandardResponseDTO(false, "create user error");
+		}
+		
+		return new StandardResponseDTO(true, "");
+		
+	}
+	
 	@PostMapping(value = "UserCharacter/train")
 	public TrainResponseDTO train(@RequestHeader("Authentication") String token, @RequestBody TrainRequestDTO dto) {
 		if(!userIsAuthorizedChecksService.userIsAuthorizedChecks(dto.getcharacterId(), token)) {
@@ -68,7 +118,7 @@ public class UserCharacterController {
 		
 		UserCharacter userCharacter = optional.get();
 		
-		if(LocalDateTime.now().isAfter(userCharacter.getLastTrained().plusDays(1))) {
+		if(userCharacter.getLastTrained() != null && LocalDateTime.now().isAfter(userCharacter.getLastTrained().plusDays(1))) {
 			if(subtractEnergyService.subtractEnergy(userCharacter.getId(), 10, false)) {
 				userCharacter.setLastTrained(LocalDateTime.now());
 				userCharacter.setStrength(userCharacter.getStrength() + 5);

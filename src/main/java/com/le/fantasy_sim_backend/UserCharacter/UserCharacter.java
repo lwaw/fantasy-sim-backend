@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.le.fantasy_sim_backend.Company.Company;
 import com.le.fantasy_sim_backend.Nation.Nation;
+import com.le.fantasy_sim_backend.Race.Race;
 import com.le.fantasy_sim_backend.Region.Region;
 import com.le.fantasy_sim_backend.UserCurrency.UserCurrency;
 import com.le.fantasy_sim_backend.Users.UserAccount;
@@ -43,6 +43,9 @@ public class UserCharacter {
 	
 	@OneToOne
 	private Nation citizenship;
+	
+	@OneToOne
+	private Race race;
 	
 	@OneToOne
 	private Nation locationNation;
@@ -143,6 +146,14 @@ public class UserCharacter {
 
 	public void setEnergy(int energy) {
 		this.energy = energy;
+	}
+
+	public Race getRace() {
+		return race;
+	}
+
+	public void setRace(Race race) {
+		this.race = race;
 	}
 	
 	

@@ -45,6 +45,7 @@ public class UserAccountController {
 		userAccount.setUsername(requestDTO.getUsername());
 		userAccount.setEmailAdress(requestDTO.getEmailAdress());
 		userAccount.setAccountCreated(LocalDateTime.now());
+		userAccount.setAccountActivated(false);
 		
 		String newPass = requestDTO.getPassword();
 		String pwHash = BCrypt.withDefaults().hashToString(12, newPass.toCharArray());
